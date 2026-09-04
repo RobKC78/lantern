@@ -73,7 +73,7 @@ def enrich(report, previous=None, saved=None):
     for finding in report['findings']:
         title = finding['title']
         if finding.get('repair'):
-            finding['disposition'] = 'Can fix automatically'
+            finding['disposition'] = 'Check and repair if applicable' if finding.get('repair_mode') == 'conditional' else 'Repair workflow available'
         elif title in ('Hardware error reported', 'Storage subsystem event', 'Bugcheck recorded'):
             finding['disposition'] = 'Needs a technician'
         elif title in ('Operation timeout', 'Unexpected shutdown', 'Previous shutdown was unexpected'):

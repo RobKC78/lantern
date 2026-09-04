@@ -1,6 +1,6 @@
 # Install Lantern on Linux
 
-`Lantern-0.1.0_all.deb` is an initial Debian-format installer for compatible Ubuntu, Linux Mint and Debian desktop systems. It installs the app and an applications-menu entry. It uses your distribution's Python and psutil packages, so a separate Python setup or source build is not required. The package manager may need internet access to install missing dependencies.
+`Lantern-0.2.0_all.deb` is an initial Debian-format installer for compatible Ubuntu, Linux Mint and Debian desktop systems. It installs the app and an applications-menu entry. It uses your distribution's Python and psutil packages, so a separate Python setup or source build is not required. The package manager may need internet access to install missing dependencies.
 
 1. Download the `.deb` onto the Linux computer.
 2. Open it with your software installer and choose Install. Enter your password when the operating system asks.
@@ -9,7 +9,7 @@
 If your desktop does not have an installer for `.deb` files, open a terminal in the folder containing the download and run:
 
 ```bash
-sudo apt install ./Lantern-0.1.0_all.deb
+sudo apt install ./Lantern-0.2.0_all.deb
 ```
 
 Then launch Lantern from the applications menu, or run `lantern` as your normal user. Do not launch the diagnostic app with sudo. Supported repairs request separate administrator approval after the repair plan is reviewed.

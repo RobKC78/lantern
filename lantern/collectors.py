@@ -24,6 +24,20 @@ def collector(name):
     return register
 
 
+@collector('windows_repair_readiness')
+def windows_repair_readiness():
+    if os.name != 'nt':
+        return {}
+    from .windows_repairs import snapshot
+    rows = {}
+    for action in ('windows_components', 'gameinput'):
+        try:
+            rows[action] = {'available': True, **snapshot(action)}
+        except Exception as exc:
+            rows[action] = {'available': False, 'reason': str(exc)[:500]}
+    return rows
+
+
 @collector('device_health')
 def device_health():
     from .device_health import collect_device_health

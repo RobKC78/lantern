@@ -1,12 +1,12 @@
 [Setup]
 AppId=LanternLocalDiagnostics
 AppName=Lantern Diagnostics
-AppVersion=0.1.0
+AppVersion=0.2.0
 DefaultDirName={localappdata}\Programs\Lantern
 DefaultGroupName=Lantern
 PrivilegesRequired=lowest
 OutputDir=..\dist
-OutputBaseFilename=Lantern-Setup-0.1.0
+OutputBaseFilename=Lantern-Setup-0.2.0
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

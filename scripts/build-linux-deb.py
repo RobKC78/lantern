@@ -34,7 +34,7 @@ def build(destination):
         b'[Desktop Entry]\nType=Application\nName=Lantern Diagnostics\nComment=Check this computer and explain problems\nExec=/usr/bin/lantern\nIcon=utilities-system-monitor\nTerminal=true\nCategories=System;Utility;\nStartupNotify=false\n', 0o644))
     for name in ('README.md', 'REPAIRS.md', 'AI-SERVICE.md'):
         entries.append(('usr/share/doc/lantern-diagnostics/' + name, (root / name).read_bytes(), 0o644))
-    control = ('Package: lantern-diagnostics\nVersion: 0.1.0\nSection: utils\nPriority: optional\n'
+    control = ('Package: lantern-diagnostics\nVersion: 0.2.0\nSection: utils\nPriority: optional\n'
         'Architecture: all\nMaintainer: Lantern Local Build <lantern@localhost>\n'
         'Depends: python3 (>= 3.10), python3-psutil (>= 5.9), iproute2\n'
         'Recommends: pciutils, policykit-1, xdg-utils\n'
@@ -72,5 +72,5 @@ def build(destination):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=Path('dist/Lantern-0.1.0_all.deb'))
+    parser.add_argument('--output', type=Path, default=Path('dist/Lantern-0.2.0_all.deb'))
     build(parser.parse_args().output)

@@ -71,5 +71,7 @@ def analyze(report):
     if health.get('reboot_pending') is True:
         add('info', 'A restart is pending', {'reboot_pending': True}, 'The operating system has recorded work that needs a restart.',
             'Save your work and restart from the normal system menu when convenient. This app will not restart the computer for you.')
+    from .windows_findings import refine
+    findings = refine(findings, data)
     from .explanations import explain
     return explain(findings)

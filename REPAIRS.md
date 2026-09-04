@@ -1,3 +1,17 @@
+# New in 0.2.0: conditional Windows repair workflows
+
+**Check and repair Windows components** is offered for logged crashes of executables in Windows System32. It is a repair candidate, not a diagnosis. After a newly created and verified Windows System Restore checkpoint and local preflight record, it scans with DISM and checks protected files with SFC. It repairs only recognized corruption, then verifies again. Healthy checks do not trigger repair. Unrecognized output stops the affected workflow. SFC result interpretation currently supports English output only. No restart is forced. Servicing commands may take an hour or longer; keep the app running. Windows repair may contact Windows Update.
+
+**Repair Microsoft GameInput** is offered for GameInput installer failures 1714/1612 only when exactly one matching Microsoft MSI registration has an accessible, valid Microsoft-signed cached installer. It backs up and verifies that installer and creates the new restore checkpoint, then runs a fixed Windows Installer repair without forced reboot. The source is rechecked before execution. If the source is missing, inaccessible, ambiguous or untrusted, the app explains why repair is unavailable. It does not fetch an arbitrary replacement, delete MSI registry records or promise that a failed upgrade is resolved.
+
+Both use the existing per-item, selected-item and all-supported-items plan/consent flow. Shared workflows run once per batch. All required preflight backups/checkpoints complete before any selected repair starts, including mixed service/Windows batches. System Restore throttling and disabled protection are respected: a failed new checkpoint blocks the batch. A restore point is not a personal-file backup or guaranteed rollback. Existing service-only batches retain the service-state backup described below.
+
+**Validation:** simulated tests cover corruption/no-corruption decisions, missing sources, backup failures, mixed-batch gating, deduplication and post-check wording. No live DISM/SFC/MSI repair or System Restore creation has been run during development. Driver reinstall/update, missing-source recovery and Mozilla installer repair remain unsupported. DCOM permission changes are deliberately not a repair action.
+
+References: [Microsoft system-file repair](https://support.microsoft.com/en-us/windows/experience/backup-recovery/using-system-file-checker-in-windows), [Windows restore checkpoints](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/checkpoint-computer?view=powershell-5.1), [Windows Installer](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/msiexec).
+
+---
+
 # The same repair experience on Windows and Linux
 
 The shared dashboard now explains findings in plain English, with optional original light humor. Serious hardware/data warnings and permission prompts stay factual. It does not imitate a real comedian or call an online language model.

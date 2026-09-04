@@ -28,7 +28,7 @@ def build(output):
     with tarfile.open(fileobj=io.BytesIO(payload), mode='r:gz') as archive:
         entries = [(m.name.removeprefix('./'), archive.extractfile(m).read(), m.mode) for m in archive.getmembers()]
     size = sum(len(data) for _, data, _ in entries)
-    metadata = (f'pkgname = lantern-diagnostics\npkgbase = lantern-diagnostics\npkgver = 0.1.0-1\n'
+    metadata = (f'pkgname = lantern-diagnostics\npkgbase = lantern-diagnostics\npkgver = 0.2.0-1\n'
                 'pkgdesc = Local diagnostics dashboard with reviewed repairs and optional AI research\n'
                 f'builddate = 1788480000\npackager = Lantern Local Build\nsize = {size}\narch = any\n'
                 'depend = python>=3.10\ndepend = python-psutil>=5.9\ndepend = iproute2\n'
@@ -55,5 +55,5 @@ def build(output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=Path('dist/lantern-diagnostics-0.1.0-1-any.pkg.tar.gz'))
+    parser.add_argument('--output', type=Path, default=Path('dist/lantern-diagnostics-0.2.0-1-any.pkg.tar.gz'))
     build(parser.parse_args().output)

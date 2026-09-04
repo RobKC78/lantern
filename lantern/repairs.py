@@ -13,10 +13,13 @@ import tempfile
 import time
 import urllib.request
 
+from . import windows_repairs
+
 CATALOG = {
     'windows': {'printing': ('Spooler', 'printing'), 'clock': ('W32Time', 'clock syncing'),
                 'audio': ('Audiosrv', 'sound'), 'audio_devices': ('AudioEndpointBuilder', 'sound-device detection'),
-                'bluetooth': ('bthserv', 'Bluetooth support')},
+                'bluetooth': ('bthserv', 'Bluetooth support'),
+                'windows_components': ('Windows components', 'system files'), 'gameinput': ('Microsoft GameInput', 'game input')},
     'linux': {'printing': ('cups.service', 'printing'), 'clock': ('systemd-timesyncd.service', 'clock syncing'),
               'bluetooth': ('bluetooth.service', 'Bluetooth support')},
 }
@@ -59,6 +62,8 @@ def invoke(args, timeout=40):
 
 def service_state(action, platform=None):
     platform = platform or platform_key()
+    if action in windows_repairs.ACTIONS:
+        return windows_repairs.snapshot(action)
     name, _ = CATALOG[platform][action]
     if platform == 'windows':
         import psutil
@@ -78,6 +83,8 @@ def service_state(action, platform=None):
 
 
 def eligible(state):
+    if state.get('start_type') == 'repair_adapter':
+        return state.get('state') == 'available'
     # Never enable disabled services or bypass masking. Inactive/on-demand is not a diagnosis.
     return state['state'] in ('stopped', 'inactive', 'failed') and state['start_type'] in ('automatic', 'manual', 'enabled', 'enabled-runtime')
 
@@ -85,6 +92,8 @@ def eligible(state):
 def inspect_services():
     rows = []
     for action in CATALOG[platform_key()]:
+        if action in windows_repairs.ACTIONS:
+            continue
         try:
             rows.append({'action': action, 'status': 'ok', **service_state(action)})
         except Exception as exc:
@@ -93,6 +102,8 @@ def inspect_services():
 
 
 def description(action):
+    if action in windows_repairs.ACTIONS:
+        return windows_repairs.describe(action)
     name, label = CATALOG[platform_key()][action]
     impact = {'printing': 'Queued print jobs may resume, and printing may open configured network listeners.',
               'clock': 'The clock may change and the service may contact its configured time server.',
@@ -114,7 +125,7 @@ def prepare_plan(report, ids):
     actions = sorted({available[i]['repair'] for i in ids})
     return {'id': secrets.token_hex(16), 'expires_at': time.time() + 300,
             'items': [description(a) for a in actions], 'actions': actions,
-            'warning': 'Only the listed service starts are included. Review the effects, then approve the operating-system permission prompt. If any backup fails, no selected repairs start.'}
+            'warning': 'Only the listed actions are included. Some are check-and-repair workflows, not confirmed fixes. Review the effects and recovery limits, then approve operating-system permission. If any required backup fails, no selected repairs start.'}
 
 
 def start_service(action):
@@ -161,12 +172,30 @@ def execute_batch(actions, notify, snapshot=service_state, start=start_service, 
         if not eligible(state):
             raise ValueError('Service state changed or repair is unsupported. Refresh before trying again.')
         before[action] = state
-    notify({'stage': 'backing_up', 'message': 'Saving service states and settings. No repairs have started.'})
+    notify({'stage': 'backing_up', 'message': 'Saving repair preflight state. No repairs have started.'})
     folder = directory()
     digest = write_verified(folder / 'before.json', {'version': 1, 'platform': platform_key(), 'services': before})
+    if any(a in windows_repairs.ACTIONS for a in actions):
+        if 'gameinput' in before:
+            source = Path(before['gameinput']['configuration']['cache'])
+            if source.stat().st_size > 128 * 1024 * 1024:
+                raise RuntimeError('Installer backup exceeds the supported size')
+            payload = source.read_bytes()
+            digest_msi = hashlib.sha256(payload).hexdigest()
+            if digest_msi.lower() != before['gameinput']['configuration']['sha256'].lower():
+                raise RuntimeError('Installer source changed before backup')
+            target = folder / 'gameinput-source.msi'
+            with target.open('xb') as handle:
+                handle.write(payload)
+                handle.flush()
+                os.fsync(handle.fileno())
+            if hashlib.sha256(target.read_bytes()).hexdigest() != digest_msi:
+                raise RuntimeError('Installer backup verification failed')
+        notify({'stage': 'backing_up', 'message': 'Creating a new Windows recovery checkpoint. If protection is unavailable or Windows refuses a new checkpoint, no repairs will start.'})
+        write_verified(folder / 'restore-point.json', windows_repairs.checkpoint())
     # All backup writes and verification must complete before the first mutation.
     write_verified(folder / 'manifest.json', {'before_sha256': digest, 'created_at': time.time()})
-    notify({'stage': 'repairing', 'backup': str(folder), 'message': 'Service-state backup verified. Starting the approved services.'})
+    notify({'stage': 'repairing', 'backup': str(folder), 'message': 'Required backups verified. Starting the approved actions.'})
     results = []
     for action in actions:
         result = {'action': action, 'label': description(action)['label'], 'status': 'Couldn’t complete'}
@@ -176,11 +205,14 @@ def execute_batch(actions, notify, snapshot=service_state, start=start_service, 
                 raise ValueError('The service changed after backup. Skipped; refresh and review it again.')
             # A durable per-action intent record precedes the operating-system command.
             write_verified(folder / (action + '-intent.json'), {'action': action, 'started_at': time.time()})
-            start(action)
-            notify({'stage': 'verifying', 'message': 'Checking ' + result['label'].lower() + '…', 'backup': str(folder)})
-            after = snapshot(action)
-            result.update(status='Fixed' if after['state'] in ('running', 'active') else 'Still needs attention',
-                          detail='Service state after the request: ' + after['state'] + '. Please also try the feature; service state alone does not prove it works.', after=after)
+            if action in windows_repairs.ACTIONS:
+                result.update(windows_repairs.execute(action, folder, notify))
+            else:
+                start(action)
+                notify({'stage': 'verifying', 'message': 'Checking ' + result['label'].lower(), 'backup': str(folder)})
+                after = snapshot(action)
+                result.update(status='Fixed' if after['state'] in ('running', 'active') else 'Still needs attention',
+                              detail='Service state after the request: ' + after['state'] + '. Please also try the feature; service state alone does not prove it works.', after=after)
         except Exception as exc:
             result['detail'] = str(exc)[:600] + ' The request may have partly completed; check the service before retrying.'
         results.append(result)

@@ -1,3 +1,5 @@
+See [REPAIRS.md](REPAIRS.md) and [CHANGELOG.md](CHANGELOG.md) for the current Windows repair adapters and validation limits.
+
 In-app AI research is now implemented; see [AI-SERVICE.md](AI-SERVICE.md) for operator setup and deployment limits. The service is not yet hosted or activated.
 
 # Lantern Diagnostics — initial MVP
@@ -56,7 +58,7 @@ Windows: install Python and Inno Setup 6, with `ISCC.exe` on PATH:
 powershell -File scripts\build-windows.ps1
 ```
 
-Produces `dist/Lantern-Setup-0.1.0.exe`: per-user installer and shortcuts, no admin required. For just the portable folder use `-PortableOnly`. The installer supports `/VERYSILENT` for an unattended per-user install. Uninstall through Windows Apps. No login-start task/service is created.
+Produces `dist/Lantern-Setup-0.2.0.exe`: per-user installer and shortcuts, no admin required. For just the portable folder use `-PortableOnly`. The installer supports `/VERYSILENT` for an unattended per-user install. Uninstall through Windows Apps. No login-start task/service is created.
 
 Linux:
 

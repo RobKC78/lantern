@@ -1,11 +1,11 @@
 # Lantern for CachyOS — test package
 
-Use `lantern-diagnostics-0.1.0-1-any.pkg.tar.gz`, not the Debian `.deb` file. Do not extract the package before installation.
+Use `lantern-diagnostics-0.2.0-1-any.pkg.tar.gz`, not the Debian `.deb` file. Do not extract the package before installation.
 
 Open a terminal in the folder containing your downloaded package and run:
 
 ```bash
-sudo pacman -U ./lantern-diagnostics-0.1.0-1-any.pkg.tar.gz
+sudo pacman -U ./lantern-diagnostics-0.2.0-1-any.pkg.tar.gz
 ```
 
 Review the package manager's proposed installation and approve it. Missing Python/psutil dependencies are handled through the configured distribution repositories. Then open **Lantern Diagnostics** from the applications menu. The dashboard opens in your browser; keep the accompanying terminal open until you choose Stop in the dashboard. Run the app as your normal user, not with sudo.

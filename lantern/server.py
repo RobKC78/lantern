@@ -60,7 +60,7 @@ def make_server(port=0, storage_dir=None):
                 outcome = state['repair'] or {}
                 record = {'id': secrets.token_hex(12), 'at': stamp(), 'stage': outcome.get('stage', 'failed'),
                           'results': outcome.get('results', []), 'backup': outcome.get('backup'),
-                          'feedback': 'not provided', 'undo': 'No automatic undo is supported for these service starts. Review the saved state with a technician; stopping a service cannot reverse printed jobs or clock changes.'}
+                          'feedback': 'not provided', 'undo': 'No automatic undo is supported. Review the saved repair records and any Windows restore-point record. System Restore may affect other apps; stopping a service cannot reverse printed jobs or clock changes.'}
                 state['history'] = (state['history'] + [record])[-20:]
             if outcome.get('stage') == 'complete':
                 try:
